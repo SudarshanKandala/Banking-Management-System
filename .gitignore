@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+*.o
+*.out
+*.so
+*.a
+
+build/
+.vscode/

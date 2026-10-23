@@ -1,0 +1,109 @@
+#ifndef ENUMS_H
+#define ENUMS_H
+
+#include <stdbool.h>
+#include <time.h>
+
+enum User_Role{
+    CUSTOMER,
+    BANK_EMPLOYEE,
+    BANK_MANAGER,
+    ADMINISTRATOR
+};
+
+enum Account_Type{
+    SAVINGS,
+    CURRENT,
+    FIXED_DEPOSIT,
+    RECURRING_DEPOSIT
+};
+
+enum Account_Status{
+    ACTIVE,
+    INACTIVE,
+    CLOSED,
+    FROZEN
+};
+
+enum Transaction_Type{
+    DEPOSIT,
+    WITHDRAWAL,
+    TRANSFER,
+    LOAN_DISBURSEMENT,
+    LOAN_REPAYMENT,
+    FEE
+};
+
+enum Transaction_Status{
+    TRANSACTION_SUCCESS,
+    TRANSACTION_FAILED,
+    TRANSACTION_PENDING
+};
+
+enum Loan_Type{
+    HOME_LOAN,
+    CAR_LOAN,
+    PERSONAL_LOAN,
+    EDUCATION_LOAN,
+    BUSINESS_LOAN
+};
+
+enum Loan_Status{
+    LOAN_PENDING,
+    LOAN_APPROVED,
+    LOAN_REJECTED,
+    LOAN_DISTURBED,
+    LOAN_CLOSED
+};
+
+enum Payment_Mode{
+    CASH,
+    UPI,
+    NET_BANKING,
+    CHEQUE,
+    AUTO_DEBIT
+};
+
+enum Payment_Status{
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILED,
+    PAYMENT_PENDING
+};
+
+enum FeedBack_Status{
+    FEEDBACK_OPEN,
+    FEEDBACK_RESOLVED,
+    FEEDBACK_CLOSED
+};
+
+enum Usecases{
+    LOGIN,
+    VIEW_ACCOUNT_BALANCE,
+    DEPOSIT_MONEY,
+    WITHDRAW_MONEY,
+    TRANSFER_FUNDS,
+    APPLY_LOAN,
+    TRANSACTION_HISTORY,
+    CHANGE_PASSWORD,
+    ADD_FEEDBACK,
+    LOGOUT,
+    ADD_NEW_CUSTOMER,
+    MODIFY_CUSTOMER_DETAILS,
+    OPEN_CUSTOMER_ACCOUNT,
+    CLOSE_CUSTOMER_ACCOUNT,
+    PROCESS_LOAN_APPLICATIONS,
+    ACCEPT_REJECT_LOANS,
+    VIEW_LOAN_APPLICATIONS,
+    VIEW_CUSTOMER_TRANSACTIONS,
+    MANAGE_USER,
+    VIEW_SYSTEM_LOGS,
+    SYSTEM_SETTINGS,
+};
+
+enum Action{
+    ADD,
+    MODIFY,
+    DELETE
+};
+
+#endif
