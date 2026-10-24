@@ -2,138 +2,123 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
-#include <signal.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "../include/config.h"
 #include "connect.h"
 
+typedef struct {
+    int client_fd;
+    client_handler_fn handle_client;
+} ClientThreadArgs;
+
+static void *client_thread(void *arg)
+{
+    ClientThreadArgs *args = (ClientThreadArgs *)arg;
+    int client_fd = args->client_fd;
+    client_handler_fn handle_client = args->handle_client;
+    free(args);
+    handle_client(client_fd);
+    close(client_fd);
+    return NULL;
+}
+
 void server_start(client_handler_fn handle_client)
 {
     int sd;
+    int reuse_addr = 1;
     struct sockaddr_in serv;
+    pthread_attr_t thread_attr;
 
     if (handle_client == NULL) {
         fprintf(stderr, "Client handler is NULL\n");
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // Automatically reap terminated child processes.
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = SIG_IGN;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART | SA_NOCLDWAIT;
-
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-
-    // 1. Create TCP socket.
     sd = socket(AF_INET, SOCK_STREAM, 0);
-
     if (sd == -1) {
         perror("socket creation at server failed");
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // Allow the server to reuse the address after restarting.
-    int reuse_addr = 1;
-
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR,
-                   &reuse_addr, sizeof(reuse_addr)) == -1) {
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr)) == -1) {
         perror("setsockopt");
         close(sd);
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // 2. Configure server address.
     memset(&serv, 0, sizeof(serv));
-
     serv.sin_family = AF_INET;
     serv.sin_port = htons(SERVER_PORT);
-
-    // Bind specifically to 127.0.0.1 for your local demo.
     if (inet_pton(AF_INET, SERVER_IP, &serv.sin_addr) != 1) {
         fprintf(stderr, "Invalid server IP: %s\n", SERVER_IP);
         close(sd);
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // 3. Bind socket to address and port.
-    if (bind(sd, (struct sockaddr *)&serv,
-             sizeof(serv)) == -1) {
+    if (bind(sd, (struct sockaddr *)&serv, sizeof(serv)) == -1) {
         perror("bind");
         close(sd);
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // 4. Start listening for connections.
     if (listen(sd, 5) == -1) {
         perror("listen");
         close(sd);
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    printf("Server listening on %s:%d\n",
-           SERVER_IP, SERVER_PORT);
+    if (pthread_attr_init(&thread_attr) != 0) {
+        fprintf(stderr, "pthread_attr_init failed\n");
+        close(sd);
+        return;
+    }
 
-    fflush(stdout);
+    if (pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED) != 0) {
+        fprintf(stderr, "pthread_attr_setdetachstate failed\n");
+        pthread_attr_destroy(&thread_attr);
+        close(sd);
+        return;
+    }
 
-    // 5. Accept and service multiple clients.
+    printf("Server listening on %s:%d\n", SERVER_IP, SERVER_PORT);
+
     while (1) {
         struct sockaddr_in cli;
         socklen_t cli_len = sizeof(cli);
-
-        int nsd = accept(
-            sd,
-            (struct sockaddr *)&cli,
-            &cli_len
-        );
+        int nsd = accept(sd, (struct sockaddr *)&cli, &cli_len);
 
         if (nsd == -1) {
-            if (errno == EINTR)
-                continue;
-
+            if (errno == EINTR) continue;
             perror("socket accept");
             continue;
         }
 
-        // 6. Create one child process for this client.
-        pid_t pid = fork();
-
-        if (pid == -1) {
-            perror("fork");
+        ClientThreadArgs *args = malloc(sizeof(*args));
+        if (args == NULL) {
+            perror("malloc for client thread");
             close(nsd);
             continue;
         }
 
-        if (pid == 0) {
-            // CHILD PROCESS
+        args->client_fd = nsd;
+        args->handle_client = handle_client;
 
-            // Child doesn't need the listening socket.
-            close(sd);
-
-            // Process requests from this client.
-            handle_client(nsd);
-
-            // Close the client connection.
+        pthread_t thread;
+        int thread_result = pthread_create(&thread, &thread_attr, client_thread, args);
+        if (thread_result != 0) {
+            fprintf(stderr, "pthread_create failed: %s\n", strerror(thread_result));
             close(nsd);
-
-            _exit(EXIT_SUCCESS);
+            free(args);
+            continue;
         }
-
-        // PARENT PROCESS
-
-        // Parent doesn't handle this client's requests.
-        close(nsd);
-
-        // Return to accept() to wait for another client.
     }
+
+    pthread_attr_destroy(&thread_attr);
+    close(sd);
 }
