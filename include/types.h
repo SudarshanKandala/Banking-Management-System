@@ -10,6 +10,7 @@ typedef struct{
     enum User_Role Role;
     bool isActive;
     time_t last_login;
+    bool is_active; /* true when this database/session record is valid */
 } User;
 
 typedef struct{
@@ -18,6 +19,7 @@ typedef struct{
     char email[128];
     int phone;
     char address[256];
+    bool is_active; /* true when this database/session record is valid */
 } Customer;
 
 typedef struct{
@@ -25,17 +27,20 @@ typedef struct{
     char name[128];
     char department[128];
     int branchID;
+    bool is_active; /* true when this database/session record is valid */
 } BankEmployee;
 
 typedef struct{
     int managerID;
     char name[128];
     char department[128];
+    bool is_active; /* true when this database/session record is valid */
 } BankManager;
 
 typedef struct{
     int adminID;
     char name[128];
+    bool is_active; /* true when this database/session record is valid */
 } Administrator;
 
 typedef struct{
@@ -45,6 +50,7 @@ typedef struct{
     time_t last_access_time;
     bool isActive;
     int expiryDuration;
+    bool is_active; /* true when this database/session record is valid */
 } Session;
 
 // Banking Domain
@@ -54,6 +60,7 @@ typedef struct{
     char name[128];
     char headOffice[128];
     char contactInfo[128];
+    bool is_active; /* true when this database/session record is valid */
 } Bank;
 
 typedef struct{
@@ -61,6 +68,7 @@ typedef struct{
     char name[128];
     char address[128];
     char ifscCode[128];
+    bool is_active; /* true when this database/session record is valid */
 } Branch;
 
 typedef struct{
@@ -70,6 +78,7 @@ typedef struct{
     double interest_rate;
     float maxAmount;
     int max_tenure_months;
+    bool is_active; /* true when this database/session record is valid */
 } LoanType;
 
 typedef struct{
@@ -80,6 +89,8 @@ typedef struct{
     enum Loan_Status status;
     time_t applied_date;
     int processed_by;
+    int tenure_months;
+    bool is_active; /* true when this database/session record is valid */
 } LoanApplication;
 
 typedef struct{
@@ -92,6 +103,7 @@ typedef struct{
     int tenure_months;
     time_t start_date;
     enum Loan_Status status;
+    bool is_active; /* true when this database/session record is valid */
 } Loan;
 
 typedef struct{
@@ -101,6 +113,7 @@ typedef struct{
     time_t payment_date;
     enum Payment_Mode mode;
     enum Payment_Status status;
+    bool is_active; /* true when this database/session record is valid */
 } LoanPayment;
 
 // Transactions and Accounts
@@ -114,6 +127,7 @@ typedef struct{
     int branchID;
     int customerID;
     time_t opened_date;
+    bool is_active; /* true when this database/session record is valid */
 } BankAccount;
 
 typedef struct{
@@ -125,6 +139,7 @@ typedef struct{
     char description[256];
     int reference_accountID;
     enum Transaction_Status status;
+    bool is_active; /* true when this database/session record is valid */
 } Transaction;
 
 typedef struct{
@@ -136,6 +151,7 @@ typedef struct{
     float debit;
     float credit;
     float balance_after;
+    bool is_active; /* true when this database/session record is valid */
 } PassbookEntry;
 
 // System and Utility Classes
@@ -146,6 +162,7 @@ typedef struct{
     char message[256];
     time_t date_time;
     enum FeedBack_Status status;
+    bool is_active; /* true when this database/session record is valid */
 } Feedback;
 
 typedef struct{
@@ -154,6 +171,7 @@ typedef struct{
     char action[128];
     char details[256];
     time_t date_time;
+    bool is_active; /* true when this database/session record is valid */
 } SystemLog;
 
 typedef struct{
@@ -162,6 +180,7 @@ typedef struct{
     char message[256];
     time_t date_time;
     bool isRead;
+    bool is_active; /* true when this database/session record is valid */
 } Notification;
 
 typedef struct{
@@ -169,6 +188,7 @@ typedef struct{
     char key[128];
     char value[128];
     char description[256];
+    bool is_active; /* true when this database/session record is valid */
 } Configuration;    
 
 #endif
